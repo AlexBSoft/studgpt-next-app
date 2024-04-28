@@ -2,7 +2,7 @@ import type { NextComponentType, NextPageContext } from "next";
 import Link from "next/link";
 import { FaTelegramPlane } from "react-icons/fa";
 
-interface Props {}
+interface Props { }
 
 const Page: NextComponentType<NextPageContext, {}, Props> = (props: Props) => {
   return (
@@ -153,7 +153,7 @@ const Page: NextComponentType<NextPageContext, {}, Props> = (props: Props) => {
             <path
               d="M11.2792 1.64001L5.63273 7.28646C5.43747 7.48172 5.43747 7.79831 5.63273 7.99357L11.2792 13.64"
               stroke="currentColor"
-              stroke-width="2"
+              strokeWidth="2"
               stroke-linecap="round"
             ></path>
           </svg>

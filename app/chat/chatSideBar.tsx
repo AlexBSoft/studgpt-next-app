@@ -2,11 +2,20 @@
 import type { NextComponentType, NextPageContext } from "next";
 import Link from "next/link";
 import ModelModal from "./modelModal";
-interface Props {}
+import { useEffect, useState } from "react";
+interface Props { }
 
 const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
   props: Props
 ) => {
+  const [chats, setChats] = useState<any>([])
+
+  useEffect(() => {
+    const _chats = JSON.parse(localStorage.getItem("chats") || "[]");
+
+    setChats(_chats)
+  }, [])
+
   return (
     <div
       id="application-sidebar"
@@ -23,7 +32,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
             <li>
               <a
                 className="flex items-center gap-x-3 py-2 px-3 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-300"
-                href="#"
+                href="/chat"
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -33,9 +42,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeWidth="2"
                 >
                   <path d="M5 12h14"></path>
                   <path d="M12 5v14"></path>
@@ -43,6 +50,18 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
                 Новый чат
               </a>
             </li>
+
+
+            {chats && chats.map((chat: any, i: number) => (
+              <li key={i}>
+                <Link
+                  href={`/chat?chat=${chat.id}`}
+                  className="flex items-center gap-x-3 py-2 px-3 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-300"
+
+                >
+                  {chat.name.slice(0, 25)}
+                </Link></li>
+            ))}
           </ul>
         </div>
 
@@ -51,7 +70,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
             <ModelModal>
               <p className="inline-flex items-center gap-x-2 text-xs text-green-600">
                 <span className="block size-1.5 rounded-full bg-green-600"></span>
-                Модель: Ollama-wizardlm2
+                Модель: GeminiPro
               </p>
             </ModelModal>
           </div>
@@ -70,9 +89,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
+                strokeWidth="2"
               >
                 <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
                 <polyline points="10 17 15 12 10 7"></polyline>

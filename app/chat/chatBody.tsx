@@ -3,32 +3,53 @@
 import type { NextComponentType, NextPageContext } from "next";
 import { RiRobot2Line } from "react-icons/ri";
 import ChatInput from "./chatInput";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import MessageHuman from "./messageHuman";
 import MessageBot from "./messageBot";
+import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
-interface Props {}
+interface Props { }
 
 const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   props: Props
 ) => {
+  const params = useSearchParams();
+  const pathname = usePathname()
+  const router = useRouter()
   const [messages, setMessages] = useState<any>([]);
   const [loading, setLoading] = useState(false);
+  const [chatId, setChatId] = useState<string>("");
+
+  useEffect(() => {
+    console.log("Use Effect")
+    if (params.get("chat")) {
+      console.log("Chat set")
+      setChatId(params.get("chat")!);
+      const chat = localStorage.getItem(params.get("chat") || "");
+      if (chat) {
+        setMessages(JSON.parse(chat));
+      }
+    } else {
+      const _chatId = Math.random().toString(36).substring(2, 15)
+      router.push(pathname + `?chat=${_chatId}`)
+    }
+  }, [params]);
 
   const askBot = async (message: string) => {
     setLoading(true);
 
-    let messagesWithMessage = [...messages, { role: "user", content: message }];
+    let messagesWithMessage = [...messages, { role: "user", parts: { text: message } }];
 
     console.log("messages", messages);
-    const response = await fetch("http://localhost:8080/api/generate", {
+    const response = await fetch("/api/v0/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "ollama-wizardlm2",
+        //model: "ollama-wizardlm2",
+        model: "gemini",
         messages: messagesWithMessage,
         user: "",
         stream: false,
@@ -37,14 +58,21 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
     const data = await response.json();
     setLoading(false);
 
+    // If this is was first message - add chat to sidebar
+    if (messagesWithMessage.length == 1)
+      localStorage.setItem("chats", JSON.stringify([...JSON.parse(localStorage.getItem('chats') || "[]"), { id: chatId, name: message, date: Date.now() }]))
+
     await setMessages([...messagesWithMessage, data.message]);
+
+    // Set this chat to local storage
+    localStorage.setItem(chatId, JSON.stringify([...messagesWithMessage, data.message]));
   };
 
   return (
     <div className="relative h-screen w-full lg:ps-64">
       <div className="py-10 lg:py-14">
         <ul className="mt-16 space-y-5">
-          <li className="max-w-4xl py-2 px-4 sm:px-6 lg:px-8 mx-auto flex gap-x-2 sm:gap-x-4">
+          {messages.length === 0 && <li className="max-w-4xl py-2 px-4 sm:px-6 lg:px-8 mx-auto flex gap-x-2 sm:gap-x-4">
             <RiRobot2Line className="w-[2.375rem] h-[2.375rem] p-1 rounded-full bg-blue-500 text-white" />
 
             <div className="space-y-3">
@@ -70,15 +98,15 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
                 </ul>
               </div>
             </div>
-          </li>
+          </li>}
           {/* {JSON.stringify(messages)} */}
 
           {messages.map((message: any, index: number) => (
             <>
               {message.role === "user" ? (
-                <MessageHuman key={index} content={message.content} />
+                <MessageHuman key={index} content={message.parts.text} />
               ) : (
-                <MessageBot key={index} content={message.content} />
+                <MessageBot key={index} content={message.parts.text} />
               )}
             </>
           ))}
