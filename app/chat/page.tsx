@@ -1,12 +1,15 @@
 import type { NextComponentType, NextPageContext } from "next";
 import ChatPageClient from "./chatPageClient";
+import { Suspense } from 'react'
 
-interface Props {}
+interface Props { }
 
 const Page: NextComponentType<NextPageContext, {}, Props> = (props: Props) => {
   return (
     <div>
-      <ChatPageClient />
+      <Suspense>
+        <ChatPageClient />
+      </Suspense>
     </div>
   );
 };
