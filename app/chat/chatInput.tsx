@@ -67,8 +67,10 @@ const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
         <div className="absolute bottom-px inset-x-px p-2 rounded-b-md bg-gray-100 dark:bg-neutral-800">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              {/* <button
+
+              <button
                 type="button"
+                title="Команды"
                 className="inline-flex flex-shrink-0 justify-center items-center size-8 rounded-lg text-gray-500 hover:text-blue-600 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-neutral-500 dark:hover:text-blue-500"
               >
                 <svg
@@ -88,6 +90,7 @@ const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
                 </svg>
               </button>
 
+              {/*
               <button
                 type="button"
                 className="inline-flex flex-shrink-0 justify-center items-center size-8 rounded-lg text-gray-500 hover:text-blue-600 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-neutral-500 dark:hover:text-blue-500"

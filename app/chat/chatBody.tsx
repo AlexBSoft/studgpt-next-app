@@ -11,6 +11,28 @@ import { useSearchParams, usePathname, useRouter } from 'next/navigation';
 
 interface Props { }
 
+const commands = [
+  { name: "extract", prompt: "Extract all facts from this text: " },
+]
+
+const contexts = [
+  {
+    name: "alex", prompt: "Alex is a cool man, he is a student, abc, etc ",
+  },
+  { name: "cats", prompt: "This cat has blue colors and it does not likes fish. But i like this cat. It is not mine" }
+]
+
+
+
+const normalizeGeminiPrompt = (messages: any) => {
+  return messages.map((message: any) => {
+    // Create a copy of the message object without the `original` field
+    const newMessage = { ...message };
+    delete newMessage.original;
+    return newMessage;
+  })
+}
+
 const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   props: Props
 ) => {
@@ -39,7 +61,29 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   const askBot = async (message: string) => {
     setLoading(true);
 
-    let messagesWithMessage = [...messages, { role: "user", parts: { text: message } }];
+    // Convert message to raw prompt - by executing commands and adding context
+    let rawPrompt = message
+
+
+    // parse commands
+    for (const command of commands) {
+      if (rawPrompt.includes("/" + command.name)) {
+        rawPrompt = rawPrompt.replace("/" + command.name, "");
+        rawPrompt = command.prompt + rawPrompt;
+        console.log("Command ", command.name, " executed!")
+      }
+    }
+
+    // parse contexts
+    for (const context of contexts) {
+      if (rawPrompt.includes("@" + context.name)) {
+        rawPrompt = rawPrompt.replace("@" + context.name, context.prompt);
+        console.log("Context ", context.name, " added!")
+      }
+    }
+
+
+    let messagesWithMessage = [...messages, { role: "user", parts: { text: rawPrompt }, original: message }];
 
     console.log("messages", messages);
     const response = await fetch("/api/v0/generate", {
@@ -50,7 +94,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
       body: JSON.stringify({
         //model: "ollama-wizardlm2",
         model: "gemini",
-        messages: messagesWithMessage,
+        messages: normalizeGeminiPrompt(messagesWithMessage),
         user: "",
         stream: false,
       }),
@@ -104,7 +148,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
           {messages.map((message: any, index: number) => (
             <>
               {message.role === "user" ? (
-                <MessageHuman key={index} content={message.parts.text} />
+                <MessageHuman key={index} original={message.original} raw={message.parts.text} />
               ) : (
                 <MessageBot key={index} content={message.parts.text} />
               )}
