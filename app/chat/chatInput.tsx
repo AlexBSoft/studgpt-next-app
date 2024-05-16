@@ -17,8 +17,8 @@ const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
 
   const sendMessage = async () => {
     if (message) {
-      await askBot(message);
       setMessage("");
+      await askBot(message);
     }
   };
 
@@ -67,7 +67,6 @@ const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
         <div className="absolute bottom-px inset-x-px p-2 rounded-b-md bg-gray-100 dark:bg-neutral-800">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-
               <button
                 type="button"
                 title="Команды"
@@ -82,8 +81,8 @@ const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                 >
                   <rect width="18" height="18" x="3" y="3" rx="2"></rect>
                   <line x1="9" x2="15" y1="15" y2="9"></line>

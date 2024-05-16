@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import type { NextComponentType, NextPageContext } from "next";
 import { useState } from "react";
 
@@ -8,10 +8,10 @@ interface Props {
 }
 
 const MessageHuman: NextComponentType<NextPageContext, {}, Props> = ({
-  original, raw
+  original,
+  raw,
 }: Props) => {
-
-  const [view, setView] = useState(false)
+  const [view, setView] = useState(false);
   return (
     <li className="py-2 sm:py-4">
       <div className="max-w-4xl px-4 sm:px-6 lg:px-8 mx-auto">
@@ -23,21 +23,23 @@ const MessageHuman: NextComponentType<NextPageContext, {}, Props> = ({
           </span>
 
           <div className="grow mt-2 space-y-3">
-            <p className="text-gray-800 dark:text-neutral-200">{original ? (view ? raw : original) : raw}</p>
+            <div className="text-gray-800 dark:text-neutral-200">
+              {original ? (view ? raw : original) : raw}
+            </div>
           </div>
-
         </div>
         <div className="sm:flex sm:justify-between">
-          <div>
-
-          </div>
+          <div></div>
 
           <div className="mt-1 sm:mt-0">
-            {original && original != raw && <button onClick={() => setView(!view)}
-              className="py-2 px-3 inline-flex items-center gap-x-2 text-sm rounded-full border border-transparent text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:bg-neutral-800">
-
-              View raw prompt
-            </button>}
+            {original && original != raw && (
+              <button
+                onClick={() => setView(!view)}
+                className="py-2 px-3 inline-flex items-center gap-x-2 text-sm rounded-full border border-transparent text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:text-neutral-400 dark:hover:bg-neutral-800"
+              >
+                View raw prompt
+              </button>
+            )}
           </div>
         </div>
       </div>

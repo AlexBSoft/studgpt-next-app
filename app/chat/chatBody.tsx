@@ -7,22 +7,27 @@ import { useEffect, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import MessageHuman from "./messageHuman";
 import MessageBot from "./messageBot";
-import { useSearchParams, usePathname, useRouter } from 'next/navigation';
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import toast, { Toaster } from "react-hot-toast";
 
-interface Props { }
+interface Props {}
 
 const commands = [
   { name: "extract", prompt: "Extract all facts from this text: " },
-]
+];
 
 const contexts = [
   {
-    name: "alex", prompt: "Alex is a cool man, he is a student, abc, etc ",
+    name: "alex",
+    prompt: "Alex is a cool man, he is a student, abc, etc ",
   },
-  { name: "cats", prompt: "This cat has blue colors and it does not likes fish. But i like this cat. It is not mine" }
-]
-
-
+  {
+    name: "cats",
+    prompt:
+      "This cat has blue colors and it does not likes fish. But i like this cat. It is not mine",
+  },
+];
 
 const normalizeGeminiPrompt = (messages: any) => {
   return messages.map((message: any) => {
@@ -30,31 +35,32 @@ const normalizeGeminiPrompt = (messages: any) => {
     const newMessage = { ...message };
     delete newMessage.original;
     return newMessage;
-  })
-}
+  });
+};
 
 const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   props: Props
 ) => {
+  const session = useSession();
   const params = useSearchParams();
-  const pathname = usePathname()
-  const router = useRouter()
+  const pathname = usePathname();
+  const router = useRouter();
   const [messages, setMessages] = useState<any>([]);
   const [loading, setLoading] = useState(false);
   const [chatId, setChatId] = useState<string>("");
 
   useEffect(() => {
-    console.log("Use Effect")
+    console.log("Use Effect");
     if (params.get("chat")) {
-      console.log("Chat set")
+      console.log("Chat set");
       setChatId(params.get("chat")!);
       const chat = localStorage.getItem(params.get("chat") || "");
       if (chat) {
         setMessages(JSON.parse(chat));
       }
     } else {
-      const _chatId = Math.random().toString(36).substring(2, 15)
-      router.push(pathname + `?chat=${_chatId}`)
+      const _chatId = Math.random().toString(36).substring(2, 15);
+      router.push(pathname + `?chat=${_chatId}`);
     }
   }, [params]);
 
@@ -62,15 +68,14 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
     setLoading(true);
 
     // Convert message to raw prompt - by executing commands and adding context
-    let rawPrompt = message
-
+    let rawPrompt = message;
 
     // parse commands
     for (const command of commands) {
       if (rawPrompt.includes("/" + command.name)) {
         rawPrompt = rawPrompt.replace("/" + command.name, "");
         rawPrompt = command.prompt + rawPrompt;
-        console.log("Command ", command.name, " executed!")
+        console.log("Command ", command.name, " executed!");
       }
     }
 
@@ -78,77 +83,105 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
     for (const context of contexts) {
       if (rawPrompt.includes("@" + context.name)) {
         rawPrompt = rawPrompt.replace("@" + context.name, context.prompt);
-        console.log("Context ", context.name, " added!")
+        console.log("Context ", context.name, " added!");
       }
     }
 
-
-    let messagesWithMessage = [...messages, { role: "user", parts: { text: rawPrompt }, original: message }];
+    let messagesWithMessage = [
+      ...messages,
+      { role: "user", parts: { text: rawPrompt }, original: message },
+    ];
 
     console.log("messages", messages);
-    const response = await fetch("/api/v0/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        //model: "ollama-wizardlm2",
-        model: "gemini",
-        messages: normalizeGeminiPrompt(messagesWithMessage),
-        user: "",
-        stream: false,
-      }),
-    });
-    const data = await response.json();
-    setLoading(false);
+    try {
+      const response = await fetch("/api/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          //model: "ollama-wizardlm2",
+          model: "gemini",
+          chatId: chatId,
+          messages: normalizeGeminiPrompt(messagesWithMessage),
+          //user: session.data ? session.data.user?.id : null,
+          stream: false,
+        }),
+      });
+      const data = await response.json();
 
-    // If this is was first message - add chat to sidebar
-    if (messagesWithMessage.length == 1)
-      localStorage.setItem("chats", JSON.stringify([...JSON.parse(localStorage.getItem('chats') || "[]"), { id: chatId, name: message, date: Date.now() }]))
+      setLoading(false);
 
-    await setMessages([...messagesWithMessage, data.message]);
+      // If this is was first message - add chat to sidebar
+      if (messagesWithMessage.length == 1)
+        localStorage.setItem(
+          "chats",
+          JSON.stringify([
+            ...JSON.parse(localStorage.getItem("chats") || "[]"),
+            { id: chatId, name: message, date: Date.now() },
+          ])
+        );
 
-    // Set this chat to local storage
-    localStorage.setItem(chatId, JSON.stringify([...messagesWithMessage, data.message]));
+      await setMessages([...messagesWithMessage, data.message]);
+
+      // Set this chat to local storage
+      localStorage.setItem(
+        chatId,
+        JSON.stringify([...messagesWithMessage, data.message])
+      );
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+      toast.error("Ошибка генерации");
+    }
   };
 
   return (
     <div className="relative h-screen w-full lg:ps-64">
       <div className="py-10 lg:py-14">
         <ul className="mt-16 space-y-5">
-          {messages.length === 0 && <li className="max-w-4xl py-2 px-4 sm:px-6 lg:px-8 mx-auto flex gap-x-2 sm:gap-x-4">
-            <RiRobot2Line className="w-[2.375rem] h-[2.375rem] p-1 rounded-full bg-blue-500 text-white" />
+          {messages.length === 0 && (
+            <li
+              className="max-w-4xl py-2 px-4 sm:px-6 lg:px-8 mx-auto flex gap-x-2 sm:gap-x-4"
+              key="start"
+            >
+              <RiRobot2Line className="w-[2.375rem] h-[2.375rem] p-1 rounded-full bg-blue-500 text-white" />
 
-            <div className="space-y-3">
-              <h2 className="font-medium text-gray-800 dark:text-white">
-                Спроси о чем угодно
-              </h2>
-              <div className="space-y-1.5">
-                <p className="mb-1.5 text-sm text-gray-800 dark:text-white">
-                  Нейросеть отвечает на любой текстовый запрос:
-                </p>
-                <ul className="list-disc list-outside space-y-1.5 ps-3.5">
-                  <li className="text-sm text-gray-800 dark:text-white">
-                    Как долететь до луны?
-                  </li>
+              <div className="space-y-3">
+                <h2 className="font-medium text-gray-800 dark:text-white">
+                  Спроси о чем угодно
+                </h2>
+                <div className="space-y-1.5">
+                  <p className="mb-1.5 text-sm text-gray-800 dark:text-white">
+                    Нейросеть отвечает на любой текстовый запрос:
+                  </p>
+                  <ul className="list-disc list-outside space-y-1.5 ps-3.5">
+                    <li className="text-sm text-gray-800 dark:text-white">
+                      Как долететь до луны?
+                    </li>
 
-                  <li className="text-sm text-gray-800 dark:text-white">
-                    Как решить задачу?
-                  </li>
+                    <li className="text-sm text-gray-800 dark:text-white">
+                      Как решить задачу?
+                    </li>
 
-                  <li className="text-sm text-gray-800 dark:text-white">
-                    Помоги написать код на python?
-                  </li>
-                </ul>
+                    <li className="text-sm text-gray-800 dark:text-white">
+                      Помоги написать код на python?
+                    </li>
+                  </ul>
+                </div>
               </div>
-            </div>
-          </li>}
+            </li>
+          )}
           {/* {JSON.stringify(messages)} */}
 
           {messages.map((message: any, index: number) => (
             <>
               {message.role === "user" ? (
-                <MessageHuman key={index} original={message.original} raw={message.parts.text} />
+                <MessageHuman
+                  key={index}
+                  original={message.original}
+                  raw={message.parts.text}
+                />
               ) : (
                 <MessageBot key={index} content={message.parts.text} />
               )}
@@ -180,6 +213,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
       </div>
 
       <ChatInput askBot={askBot} isLoading={loading} />
+      <Toaster />
     </div>
   );
 };

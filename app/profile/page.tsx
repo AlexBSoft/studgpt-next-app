@@ -1,8 +1,13 @@
+import { auth } from "@/auth";
 import type { NextComponentType, NextPageContext } from "next";
 
 interface Props {}
 
-const Page: NextComponentType<NextPageContext, {}, Props> = (props: Props) => {
+const Page: NextComponentType<NextPageContext, {}, Props> = async (
+  props: Props
+) => {
+  const session = await auth();
+
   return (
     <div className="max-w-4xl px-4 py-10 sm:px-6 lg:px-8 mx-auto">
       <div className="bg-white rounded-xl shadow p-4 sm:p-7 dark:bg-neutral-800">
