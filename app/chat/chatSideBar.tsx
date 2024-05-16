@@ -14,10 +14,20 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
   const [chats, setChats] = useState<any>([]);
   const session = useSession();
 
-  useEffect(() => {
-    const _chats = JSON.parse(localStorage.getItem("chats") || "[]");
+  const updateChats = async () => {
+    //  If logged in - get chats from backend
+    if (session.status === "authenticated") {
+      const r = await fetch("/api/chats");
+      setChats(await r.json());
+    } else {
+      const _chats = JSON.parse(localStorage.getItem("chats") || "[]");
 
-    setChats(_chats);
+      setChats(_chats);
+    }
+  };
+
+  useEffect(() => {
+    updateChats();
   }, []);
 
   return (

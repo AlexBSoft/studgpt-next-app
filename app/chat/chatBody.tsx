@@ -10,6 +10,7 @@ import MessageBot from "./messageBot";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast, { Toaster } from "react-hot-toast";
+import ObjectId from "bson-objectid";
 
 interface Props {}
 
@@ -49,17 +50,30 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   const [loading, setLoading] = useState(false);
   const [chatId, setChatId] = useState<string>("");
 
+  const getChatMessages = async (chatId: string) => {
+    // If logged in - get chat from server
+    if (session.status === "authenticated" && chatId != "" && chatId != null) {
+      const r = await fetch("/api/messages?chat=" + chatId);
+      const _lastMsg = await r.json();
+      console.log("Chat messages", _lastMsg);
+      if (_lastMsg) setMessages([..._lastMsg.messages, _lastMsg.result]);
+    } else {
+      const chat = localStorage.getItem(params.get("chat") || "");
+      if (chat) {
+        setMessages(JSON.parse(chat));
+      }
+    }
+  };
+
   useEffect(() => {
     console.log("Use Effect");
     if (params.get("chat")) {
       console.log("Chat set");
       setChatId(params.get("chat")!);
-      const chat = localStorage.getItem(params.get("chat") || "");
-      if (chat) {
-        setMessages(JSON.parse(chat));
-      }
+
+      getChatMessages(params.get("chat")!);
     } else {
-      const _chatId = Math.random().toString(36).substring(2, 15);
+      const _chatId = new ObjectId().toHexString();
       router.push(pathname + `?chat=${_chatId}`);
     }
   }, [params]);
