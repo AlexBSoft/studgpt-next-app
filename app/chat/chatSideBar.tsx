@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { MdLogin } from "react-icons/md";
 import { BsPerson } from "react-icons/bs";
+import ObjectId from "bson-objectid";
 interface Props {}
+
+import {useModelStore} from "@/lib/stores/model.store";
 
 const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
   props: Props
@@ -30,6 +33,8 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
     updateChats();
   }, []);
 
+  const model = useModelStore((state) => state.model)
+
   return (
     <div
       id="application-sidebar"
@@ -44,9 +49,9 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
         <div className="h-full">
           <ul className="space-y-1.5 p-4">
             <li>
-              <a
+              <Link
                 className="flex items-center gap-x-3 py-2 px-3 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-300"
-                href="/chat"
+                href={`/chat?chat=${new ObjectId().toHexString()}`}
               >
                 <svg
                   className="flex-shrink-0 size-4"
@@ -62,7 +67,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
                   <path d="M12 5v14"></path>
                 </svg>
                 Новый чат
-              </a>
+              </Link>
             </li>
 
             {chats &&
@@ -106,7 +111,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
             <ModelModal>
               <p className="inline-flex items-center gap-x-2 text-xs text-green-600 cursor-pointer">
                 <span className="block size-1.5 rounded-full bg-green-600"></span>
-                Модель: GeminiPro
+                Модель: {model}
               </p>
             </ModelModal>
           </div>

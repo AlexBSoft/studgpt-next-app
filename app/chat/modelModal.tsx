@@ -1,3 +1,4 @@
+'use client';
 import type { NextComponentType, NextPageContext } from "next";
 import {
   AlertDialog,
@@ -18,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import {useModelStore} from "@/lib/stores/model.store";
+
 interface Props {
   children: React.ReactNode;
 }
@@ -25,6 +28,12 @@ interface Props {
 const ModelModal: NextComponentType<NextPageContext, {}, Props> = ({
   children,
 }: Props) => {
+
+  const model = useModelStore((state) => state.model)
+
+  const setModel = (_model: string) => useModelStore.setState({model: _model})
+  
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
@@ -32,21 +41,19 @@ const ModelModal: NextComponentType<NextPageContext, {}, Props> = ({
         <AlertDialogHeader>
           <AlertDialogTitle>Выбор модели</AlertDialogTitle>
           <AlertDialogDescription>
-            <Select>
+            <Select defaultValue={model} onValueChange={setModel}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Модель" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="light">Gemini</SelectItem>
-                <SelectItem value="dark">GPT-3.5</SelectItem>
-                <SelectItem value="system">Ollama-wizardlm2</SelectItem>
+                <SelectItem value="gemini">GeminiPro</SelectItem>
+                <SelectItem value="ictis-llama">ICTIS Llama</SelectItem>
               </SelectContent>
             </Select>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Отмена</AlertDialogCancel>
-          <AlertDialogAction>Сохранить</AlertDialogAction>
+          <AlertDialogAction >Сохранить</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

@@ -11,6 +11,7 @@ import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import toast, { Toaster } from "react-hot-toast";
 import ObjectId from "bson-objectid";
+import {useModelStore} from "@/lib/stores/model.store";
 
 interface Props {}
 
@@ -50,6 +51,8 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   const [loading, setLoading] = useState(false);
   const [chatId, setChatId] = useState<string>("");
 
+  const model = useModelStore((state) => state.model)
+
   const getChatMessages = async (chatId: string) => {
     // If logged in - get chat from server
     if (session.status === "authenticated" && chatId != "" && chatId != null) {
@@ -57,6 +60,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
       const _lastMsg = await r.json();
       console.log("Chat messages", _lastMsg);
       if (_lastMsg) setMessages([..._lastMsg.messages, _lastMsg.result]);
+      if(!_lastMsg) setMessages([])
     } else {
       const chat = localStorage.getItem(params.get("chat") || "");
       if (chat) {
@@ -115,7 +119,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
         },
         body: JSON.stringify({
           //model: "ollama-wizardlm2",
-          model: "gemini",
+          model: model,
           chatId: chatId,
           messages: normalizeGeminiPrompt(messagesWithMessage),
           //user: session.data ? session.data.user?.id : null,
@@ -123,6 +127,12 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
         }),
       });
       const data = await response.json();
+
+      if(data.error || !data.message) {
+        setLoading(false);
+        toast.error(data.error);
+        return
+      }
 
       setLoading(false);
 
@@ -189,17 +199,17 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
           {/* {JSON.stringify(messages)} */}
 
           {messages.map((message: any, index: number) => (
-            <>
+            <div key={index}>
               {message.role === "user" ? (
                 <MessageHuman
-                  key={index}
+                  
                   original={message.original}
                   raw={message.parts.text}
                 />
               ) : (
-                <MessageBot key={index} content={message.parts.text} />
+                <MessageBot content={message.parts.text} />
               )}
-            </>
+           </div>
           ))}
 
           {loading && (
