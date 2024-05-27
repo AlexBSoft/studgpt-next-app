@@ -9,7 +9,7 @@ import { BsPerson } from "react-icons/bs";
 import ObjectId from "bson-objectid";
 interface Props {}
 
-import {useModelStore} from "@/lib/stores/model.store";
+import { useModelStore } from "@/lib/stores/model.store";
 
 const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
   props: Props
@@ -33,7 +33,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
     updateChats();
   }, []);
 
-  const model = useModelStore((state) => state.model)
+  const model = useModelStore((state) => state.model);
 
   return (
     <div
@@ -47,7 +47,7 @@ const ChatSideBar: NextComponentType<NextPageContext, {}, Props> = (
         <div className="flex items-center justify-between pt-4 pe-4 ps-7"></div>
 
         <div className="h-full">
-          <ul className="space-y-1.5 p-4">
+          <ul className="space-y-1.5 p-4 xl:max-h-[calc(100vh-9rem)] overflow-y-auto [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300 dark:[&::-webkit-scrollbar-track]:bg-neutral-700 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-500">
             <li>
               <Link
                 className="flex items-center gap-x-3 py-2 px-3 text-sm text-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-300"
