@@ -3,15 +3,26 @@
 import type { NextComponentType, NextPageContext } from "next";
 import { useState } from "react";
 import { LuSend } from "react-icons/lu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import Link from "next/link";
 
 interface Props {
   askBot: (message: string) => void;
   isLoading: boolean;
+  documents?: Array<any>;
 }
 
 const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
   askBot,
   isLoading,
+  documents,
 }: Props) => {
   const [message, setMessage] = useState("");
 
@@ -67,27 +78,48 @@ const ChatInput: NextComponentType<NextPageContext, {}, Props> = ({
         <div className="absolute bottom-px inset-x-px p-2 rounded-b-md bg-gray-100 dark:bg-neutral-800">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <button
-                type="button"
-                title="Команды"
-                className="inline-flex flex-shrink-0 justify-center items-center size-8 rounded-lg text-gray-500 hover:text-blue-600 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-neutral-500 dark:hover:text-blue-500"
-              >
-                <svg
-                  className="flex-shrink-0 size-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="18" height="18" x="3" y="3" rx="2"></rect>
-                  <line x1="9" x2="15" y1="15" y2="9"></line>
-                </svg>
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    title="Команды"
+                    className="inline-flex flex-shrink-0 justify-center items-center size-8 rounded-lg text-gray-500 hover:text-blue-600 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-neutral-500 dark:hover:text-blue-500"
+                  >
+                    <svg
+                      className="flex-shrink-0 size-4"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+                      <line x1="9" x2="15" y1="15" y2="9"></line>
+                    </svg>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Контексты (файлы)</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {documents?.map((doc) => (
+                    <DropdownMenuItem
+                      key={doc.id}
+                      onClick={() => {
+                        setMessage((oldMessage)=>`@${doc.fileName} ` + oldMessage);
+                      }}
+                    >
+                      {doc.fileName}
+                    </DropdownMenuItem>
+                  ))}
+                  {documents?.length === 0 && (
+                    <DropdownMenuItem asChild><Link href="/chat/extra">Добавить файл</Link></DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               {/*
               <button

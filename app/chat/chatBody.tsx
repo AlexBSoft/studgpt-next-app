@@ -50,6 +50,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   const [messages, setMessages] = useState<any>([]);
   const [loading, setLoading] = useState(false);
   const [chatId, setChatId] = useState<string>("");
+  const [documents, setDocuments] = useState<Array<any>>([]);
 
   const model = useModelStore((state) => state.model)
 
@@ -69,6 +70,14 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
     }
   };
 
+  const fetchDocuments = async () => {
+    if (session.status === "authenticated" && chatId != "" && chatId != null) {
+      const res = await fetch("/api/documents");
+      const data = await res.json();
+      setDocuments(data);
+    }
+  };
+
   useEffect(() => {
     console.log("Use Effect");
     if (params.get("chat")) {
@@ -80,6 +89,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
       const _chatId = new ObjectId().toHexString();
       router.push(pathname + `?chat=${_chatId}`);
     }
+    fetchDocuments()
   }, [params]);
 
   const askBot = async (message: string) => {
@@ -98,10 +108,10 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
     }
 
     // parse contexts
-    for (const context of contexts) {
-      if (rawPrompt.includes("@" + context.name)) {
-        rawPrompt = rawPrompt.replace("@" + context.name, context.prompt);
-        console.log("Context ", context.name, " added!");
+    for (const context of documents) {
+      if (rawPrompt.includes("@" + context.fileName)) {
+        rawPrompt = rawPrompt.replace("@" + context.fileName, context.text);
+        console.log("Context ", context.text, " added!");
       }
     }
 
@@ -236,7 +246,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
         </ul>
       </div>
 
-      <ChatInput askBot={askBot} isLoading={loading} />
+      <ChatInput askBot={askBot} isLoading={loading} documents={documents}/>
       <Toaster />
     </div>
   );
