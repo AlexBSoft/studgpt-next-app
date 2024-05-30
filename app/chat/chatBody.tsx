@@ -79,6 +79,10 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
   };
 
   useEffect(() => {
+    fetchDocuments()
+  },[session.status])
+
+  useEffect(() => {
     console.log("Use Effect");
     if (params.get("chat")) {
       console.log("Chat set");
@@ -89,7 +93,7 @@ const ChatBody: NextComponentType<NextPageContext, {}, Props> = (
       const _chatId = new ObjectId().toHexString();
       router.push(pathname + `?chat=${_chatId}`);
     }
-    fetchDocuments()
+    
   }, [params]);
 
   const askBot = async (message: string) => {
